@@ -1,31 +1,32 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || "http://13.60.167.234:5000";
 const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN;
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor to add auth token for admin routes
 api.interceptors.request.use((config) => {
-  const isAdminRoute = config.url?.includes('/api/posts') && (config.method !== 'get') ||
-                       config.url?.includes('/api/upload') ||
-                       config.url?.includes('/api/newsletter/send') ||
-                       config.url?.includes('/api/newsletter/subscribers') ||
-                       config.url?.includes('/api/newsletter/unsubscribe');
-  
+  const isAdminRoute =
+    (config.url?.includes("/api/posts") && config.method !== "get") ||
+    config.url?.includes("/api/upload") ||
+    config.url?.includes("/api/newsletter/send") ||
+    config.url?.includes("/api/newsletter/subscribers") ||
+    config.url?.includes("/api/newsletter/unsubscribe");
+
   if (isAdminRoute) {
     const adminToken = ADMIN_TOKEN || (window as any).__ADMIN_TOKEN__;
     if (adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`;
     }
   }
-  
+
   return config;
 });
 
@@ -33,7 +34,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error("API Error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
@@ -63,7 +64,7 @@ export interface ApiResponse<T> {
 export const postsAPI = {
   // Get all posts
   getPosts: async (): Promise<Post[]> => {
-    const response = await api.get('/api/posts');
+    const response = await api.get("/api/posts");
     return response.data;
   },
 
@@ -74,13 +75,18 @@ export const postsAPI = {
   },
 
   // Create post (admin only)
-  createPost: async (postData: Omit<Post, 'id' | 'created_at'>): Promise<Post> => {
-    const response = await api.post('/api/posts', postData);
+  createPost: async (
+    postData: Omit<Post, "id" | "created_at">
+  ): Promise<Post> => {
+    const response = await api.post("/api/posts", postData);
     return response.data;
   },
 
   // Update post (admin only)
-  updatePost: async (id: number, postData: Partial<Omit<Post, 'id' | 'created_at'>>): Promise<Post> => {
+  updatePost: async (
+    id: number,
+    postData: Partial<Omit<Post, "id" | "created_at">>
+  ): Promise<Post> => {
     const response = await api.put(`/api/posts/${id}`, postData);
     return response.data;
   },
@@ -97,11 +103,11 @@ export const uploadAPI = {
   // Upload image (admin only)
   uploadImage: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await api.post('/api/upload', formData, {
+    formData.append("file", file);
+
+    const response = await api.post("/api/upload", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
@@ -112,24 +118,30 @@ export const uploadAPI = {
 export const newsletterAPI = {
   // Subscribe to newsletter
   signup: async (email: string): Promise<{ message: string }> => {
-    const response = await api.post('/api/newsletter/signup', { email });
+    const response = await api.post("/api/newsletter/signup", { email });
     return response.data;
   },
 
   // Send newsletter (admin only)
-  sendNewsletter: async (subject: string, content: string): Promise<{
+  sendNewsletter: async (
+    subject: string,
+    content: string
+  ): Promise<{
     message: string;
     success_count: number;
     failed_count: number;
     total_subscribers: number;
   }> => {
-    const response = await api.post('/api/newsletter/send', { subject, content });
+    const response = await api.post("/api/newsletter/send", {
+      subject,
+      content,
+    });
     return response.data;
   },
 
   // Get subscribers (admin only)
   getSubscribers: async (): Promise<NewsletterSubscriber[]> => {
-    const response = await api.get('/api/newsletter/subscribers');
+    const response = await api.get("/api/newsletter/subscribers");
     return response.data;
   },
 
@@ -143,7 +155,7 @@ export const newsletterAPI = {
 // Health check
 export const healthAPI = {
   check: async (): Promise<{ status: string; timestamp: string }> => {
-    const response = await api.get('/api/health');
+    const response = await api.get("/api/health");
     return response.data;
   },
 };
